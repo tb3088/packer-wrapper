@@ -1,0 +1,101 @@
+{
+    "variables" : {
+	"project"	: null,
+	"layer"		: "base",
+	"environment"	: "",
+	"cloud"		: null,
+	"region"	: "{{env `AWS_DEFAULT_REGION`}}",
+	"source_ami"	: "",
+	"ami_region"	: "",
+	"ssh_username"	: "",
+	"instance"	: "t2.small",
+	"subnet_id"	: "",
+	"proxy_url"	: "",
+	"no_proxy"	: "",
+	"home"		: "{{env `HOME`}}",
+	"build_number"	: "{{env `BUILD_NUMBER`}}",
+	"branch"	: "{{env `GIT_BRANCH`}}",
+	"commit"	: "{{env `GIT_COMMIT`}}",
+	"debug"		: "",
+	"noop"		: ""
+    },
+    "builders" : [
+	{
+	    "type"		: "amazon-ebs",
+	    "region"		: "{{user `region`}}",
+	    "source_ami"	: "{{user `source_ami`}}",
+	    "instance_type"	: "t2.small",
+	    "ssh_username"	: "{{user `ssh_username`}}",
+	    "subnet_id"		: "{{user `subnet_id`}}",            
+	    "ami_virtualization_type": "hvm",
+	    "security_group_ids": "{{user `security_group_ids`}}",
+	    "ami_name"		: "{{user `project`}} [{{user `layer`}}] hvm [{{user `build_number`}}]",
+	    "ami_description"	: "Packer build - {{timestamp}}.",
+	    "tags" : {
+		"project"	: "{{user `project`}}",
+		"layer"		: "{{user `layer`}}",
+		"environment"	: "{{user `environment`}}",
+		"commit"	: "{{user `commit`}}"
+	    },
+	    "run_tags"		: {
+		"Name"		: "packer {{timestamp}}",
+		"project"	: "{{user `project`}}",
+		"layer"		: "{{user `layer`}}",
+		"environment"	: "{{user `environment`}}"
+	    },
+	    "user_data_file"	: "userdata.json"
+	}
+    ],
+    "provisioners": [
+	{
+	    "type"		: "shell",
+	    "scripts"		: [ "scripts/bootstrap.sh" ],
+	    "environment_vars"	: [
+		"http_proxy={{user `proxy_url`}}",
+		"https_proxy={{user `proxy_url`}}",
+		"no_proxy={{user `no_proxy`}}",
+		"layer={{user `layer`}}",
+		"package_cmd={{user `package_cmd`}}",
+		"os_name={{user `os_name`}}",
+		"os_family={{user `os_family`}}",
+		"os_arch={{user `os_arch`}}" ,
+		"os_version={{user `os_version`}}",
+		"os_distro={{user `os_distro`}}"
+	    ]
+	},
+	{
+	    "type"		: "puppet-masterless",
+	    "puppet_bin_dir"	: "/opt/puppetlabs/bin",
+	    "manifest_file"	: "puppet/manifests/modules.pp",
+	    "module_paths"	: [ "puppet/modules" ],
+	    "extra_arguments"	: [
+		"{{if eq \"{{user `debug`}}\" \"1\"}}--test{{end}}",
+		"{{if user `debug` gt 1}}--debug{{end}}",
+		"{{if user `noop`}}--noop{{end}}",
+		"--modulepath='{{.ModulePath}}:$({{.PuppetBinDir}}/puppet config print basemodulepath)'"
+	    ],
+	    "facter"		: {
+		"role"		: "ami::{{user `layer`}}",
+		"cloud"		: "{{user `cloud`}}"
+	    }
+	},
+	{
+	    "type"		: "puppet-masterless",
+	    "puppet_bin_dir"	: "/opt/puppetlabs/bin",
+	    "manifest_file"	: "puppet/manifests/site.pp",
+	    "module_paths"	: [ "puppet/modules" ],
+	    "extra_arguments"	: [
+		"{{if ne \"{{user `environment`}}\" \"\"}}--environment={{user `environment`}}{{end}}",
+		"{{if eq \"{{user `debug`}}\" \"1\"}}--test{{end}}",
+		"{{if gt \"{{user `debug`}}\" \"1\"}}--debug{{end}}",
+		"{{if user `noop`}}--noop{{end}}",
+		"{{if ne \".ModulePath\" \"\"}}--modulepath='{{.ModulePath}}:$({{.PuppetBinDir}}/puppet config print {{if ne \"{{user `environment`}}\" \"\"}}--environment={{user `environment`}}{{end}} modulepath)'{{end}}"
+	    ],
+	    "facter"		: {
+		"role"		: "ami::{{user `layer`}}",
+		"cloud"		: "{{user `cloud`}}"
+	    }
+	}
+    ]
+}
+

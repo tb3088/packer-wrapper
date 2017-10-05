@@ -1,0 +1,5 @@
+{
+    "iam_instance_profile" : "self",
+    "access_key"	: "",
+    "secret_key"	: ""
+}

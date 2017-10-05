@@ -1,0 +1,30 @@
+    "provisioners": [
+	{
+	    "type"		: "shell",
+	    "inline"		: [ "alias sudo='\\sudo -E'",
+				    "sudo {{user `package_cmd`}} -y install {{user `$packages`}}",
+	    			    "sudo {{user `package_cmd`}} -y install {{user `puppet_repo`}}",
+				    "for p in {{user `puppet_modules`}}; do sudo puppet module install $p; done",
+	    			    "sudo {{user `package_cmd`}} install {{user `puppet_repo`}}"
+				  ],
+	    "environment_vars"	: [ "http_proxy={{user `proxy_url`}}" ],
+	    "pause_before"	: "30s"
+	},
+	{
+	    "type"		: "shell",
+	    "scripts"		: [ "scripts/bootstrap.sh" ],
+	    "environment_vars"	: [ "http_proxy={{user `proxy_url`}}" ],
+	    "pause_before"	: "30s"
+	},
+	{
+	    "type"		: "puppet-masterless",
+	    "manifest_file"	: "puppet/manifests/site.pp",
+	    "module_paths"	: [ "puppet/modules" ],
+	    "facter"		: {
+				    "key"  : "value",
+				    "key2" : "value2"
+				  }
+	}
+    ]
+}
+

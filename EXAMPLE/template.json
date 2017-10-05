@@ -1,0 +1,173 @@
+{
+ "variables": {
+    "project"       : "",
+    "layer"         : "",
+    "environment"   : "production",
+    "instance"      : "t2.small",
+    "source_ami"    : "",
+    "build_number"  : "{{env `BUILD_NUMBER`}}",
+    "git_branch"    : "{{env `GIT_BRANCH`}}",
+    "git_commit"    : "{{env `GIT_COMMIT`}}",
+    "puppet_version"  : "4.x",
+    "region"        : "{{env `AWS_DEFAULT_REGION`}}",
+    "ami_region"    : "",
+
+    "disk0_name"    : "/dev/sda1",
+    "disk0_virtual" : "",
+    "disk0_snapshot": "",
+    "disk0_size"    : "8",
+    "disk0_type"    : "gp2",
+    "disk0_delete"  : "true",
+    "disk0_encrypt" : "false",
+    "disk0_iops"    : "0",
+    "disk0_nodev"   : "false",
+
+    "disk1_name"    : "/dev/sdf",
+    "disk1_virtual" : "",
+    "disk1_snapshot": "",
+    "disk1_size"    : "0",
+    "disk1_type"    : "gp2",
+    "disk1_delete"  : "true",
+    "disk1_encrypt" : "false",
+    "disk1_iops"    : "0",
+    "disk1_nodev"   : "true",
+
+    "disk2_name"    : "/dev/sdg",
+    "disk2_virtual" : "",
+    "disk2_snapshot": "",
+    "disk2_size"    : "0",
+    "disk2_type"    : "gp2",
+    "disk2_delete"  : "true",
+    "disk2_encrypt" : "false",
+    "disk2_iops"    : "0",
+    "disk2_nodev"   : "true",
+
+    "disk3_name"    : "/dev/sdh",
+    "disk3_virtual" : "",
+    "disk3_snapshot": "",
+    "disk3_size"    : "0",
+    "disk3_type"    : "gp2",
+    "disk3_delete"  : "true",
+    "disk3_encrypt" : "false",
+    "disk3_iops"    : "0",
+    "disk3_nodev"   : "true",
+
+    "disk4_name"    : "/dev/sdi",
+    "disk4_virtual" : "",
+    "disk4_snapshot": "",
+    "disk4_size"    : "0",
+    "disk4_type"    : "gp2",
+    "disk4_delete"  : "true",
+    "disk4_encrypt" : "false",
+    "disk4_iops"    : "0",
+    "disk4_nodev"   : "true"
+  },
+  "builders": [
+    {
+      "type"            : "amazon-ebs",
+      "region"          : "{{user `region`}}",
+      "source_ami"      : "{{user `source_ami`}}",
+      "instance_type"   : "{{user `instance`}}",
+      "ssh_username"    : "ubuntu",
+      "ami_name"        : "{{user `project`}} [{{user `layer`}}] hvm [{{user `build_number`}}]",
+      "ami_regions"     : "{{user `ami_region`}}",
+      "associate_public_ip_address" : true,
+      "enhanced_networking"         : true,
+      "user_data_file"  : "packer.userdata.json",
+      "run_tags": {
+        "Name"          : "{{user `project`}} - [packer]",
+        "beam.project"  : "{{user `project`}}",
+        "beam.layer"    : "{{user `layer`}}"
+      },
+      "tags": {
+        "beam.project"  : "{{user `project`}}",
+        "beam.layer"    : "{{user `layer`}}",
+        "beam.commit"   : "{{user `git_commit`}}"
+      },
+      "launch_block_device_mappings": [ 
+        {
+          "device_name" : "{{user `disk0_name`}}",
+          "virtual_name": "{{user `disk0_virtual`}}",
+          "volume_size" : "{{user `disk0_size`}}",
+          "volume_type" : "{{user `disk0_type`}}",
+          "delete_on_termination": "{{user `disk0_delete`}}",
+          "snapshot_id" : "{{user `disk0_snapshot`}}",
+          "encrypted"   : "{{user `disk0_encrypt`}}",
+          "iops"        : "{{user `disk0_iops`}}",
+          "no_device"   : "{{user `disk0_nodev`}}"
+        },
+        {
+          "device_name" : "{{user `disk1_name`}}",
+          "virtual_name": "{{user `disk1_virtual`}}",
+          "volume_size" : "{{user `disk1_size`}}",
+          "volume_type" : "{{user `disk1_type`}}",
+          "delete_on_termination": "{{user `disk1_delete`}}",
+          "snapshot_id" : "{{user `disk1_snapshot`}}",
+          "encrypted"   : "{{user `disk1_encrypt`}}",
+          "iops"        : "{{user `disk1_iops`}}",
+          "no_device"   : "{{user `disk1_nodev`}}"
+        },
+        {
+          "device_name" : "{{user `disk2_name`}}",
+          "virtual_name": "{{user `disk2_virtual`}}",
+          "volume_size" : "{{user `disk2_size`}}",
+          "volume_type" : "{{user `disk2_type`}}",
+          "delete_on_termination": "{{user `disk2_delete`}}",
+          "snapshot_id" : "{{user `disk2_snapshot`}}",
+          "encrypted"   : "{{user `disk2_encrypt`}}",
+          "iops"        : "{{user `disk2_iops`}}",
+          "no_device"   : "{{user `disk2_nodev`}}"
+        },
+        {
+          "device_name" : "{{user `disk3_name`}}",
+          "virtual_name": "{{user `disk3_virtual`}}",
+          "volume_size" : "{{user `disk3_size`}}",
+          "volume_type" : "{{user `disk3_type`}}",
+          "delete_on_termination": "{{user `disk3_delete`}}",
+          "snapshot_id" : "{{user `disk3_snapshot`}}",
+          "encrypted"   : "{{user `disk3_encrypt`}}",
+          "iops"        : "{{user `disk3_iops`}}",
+          "no_device"   : "{{user `disk3_nodev`}}"
+        },
+        {
+          "device_name" : "{{user `disk4_name`}}",
+          "virtual_name": "{{user `disk4_virtual`}}",
+          "volume_size" : "{{user `disk4_size`}}",
+          "volume_type" : "{{user `disk4_type`}}",
+          "delete_on_termination": "{{user `disk4_delete`}}",
+          "snapshot_id" : "{{user `disk4_snapshot`}}",
+          "encrypted"   : "{{user `disk4_encrypt`}}",
+          "iops"        : "{{user `disk4_iops`}}",
+          "no_device"   : "{{user `disk4_nodev`}}"
+        }
+      ],
+      "ami_block_device_mappings": [
+        {
+          "device_name" : "/dev/sdb",
+          "virtual_name": "ephemeral0"
+        },
+        {
+          "device_name" : "/dev/sdc",
+          "virtual_name": "ephemeral1"
+        },
+        {
+          "device_name" : "/dev/sdd",
+          "virtual_name": "ephemeral2"
+        },
+        {
+          "device_name" : "/dev/sde",
+          "virtual_name": "ephemeral3"
+        }
+      ]
+    }
+  ],
+  "provisioners": [
+    {
+      "type"            : "puppet-masterless",
+      "chef_environment": "{{user `environment`}}",
+      "run_list"        : "recipe[{{user `project`}}],{{user `recipe`}}",
+      "install_command" : "curl --connect-timeout 30 --max-time 180 -LO 'https://www.opscode.com/chef/install.sh' && {{if .Sudo}}sudo{{end}} bash ./install.sh -v {{user `chef_version`}} ; rm install.sh",
+     "execute_command" : "sudo chef-solo --no-color -c {{.ConfigPath}} -j {{.JsonPath}} --log_level=info"
+    }
+  ]
+}

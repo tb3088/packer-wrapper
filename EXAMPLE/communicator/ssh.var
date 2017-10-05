@@ -1,0 +1,8 @@
+# https://www.packer.io/docs/templates/communicator.html
+# these go into the builder stanza and should be pulled in via {{user `var`}}
+{
+    "ssh_bastian_host"	: "myhost",
+    "ssh_bastian_private_key_file" : "my-identity",
+    "ssh_bastian_username": "relay",
+    "ssh_timeout": "5m"
+}

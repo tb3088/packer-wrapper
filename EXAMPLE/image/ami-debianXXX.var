@@ -1,0 +1,11 @@
+{
+    "source_ami"	: "ami-XXX",
+    "region"		: "us-east-1"
+    "ssh_username"	: "ubuntu",
+    "package_cmd"	: "apt-get",
+    "os_name"		: "???",
+    "os_family"		: "Debian",
+    "os_arch"		: "x86_64",
+    "os_version"	: "7",
+    "os_distro"		: "wheezy"
+}

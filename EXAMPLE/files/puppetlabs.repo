@@ -1,0 +1,6 @@
+[puppetlabs-pc1]
+name=Puppet Labs PC1 Repository el 6 - $basearch
+baseurl=http://yum.puppetlabs.com/el/6/PC1/$basearch
+gpgkey=http://yum.puppetlabs.com/RPM-GPG-KEY-puppetlabs
+enabled=1
+gpgcheck=1

@@ -1,0 +1,191 @@
+RUNNING
+=======
+
+symlink 'packer-wrapper.sh' to desired command: eg. verify, build, inspect
+Run with '-h' to get usage.
+
+  example:
+	./validate.sh -i ami-xxx[.var|.json] -e dev -r us-east-1 base.json
+
+
+NOTES
+=====
+ * ${{env `foo`}} can ONLY be present in final template, not in any 'var-file's
+ * 'var-file' have a '.var' suffix to differentiate - the script will try both.
+ * Cygwin symlinks are fake so Template won't validate because of stat() error.
+	use Windows 'mklink'
+
+
+
+
+SETTINGS
+========
+  Prod-MGT in us-east-1
+	sg-4d5e8237	gateway
+	sg-8114c4fb	default
+	sg-22e75958	inside
+	sg-57ed552d	workspace
+	sg-48d15632	packer
+	sg-bc33d2c0	bypass-proxy
+
+        # properly belongs in environment or set on command-line
+        #"proxy_url"    : "http://outproxy:8888",
+
+
+
+EXAMPLE
+======= 
+
+* directory listing
+    -rw-r--r--+	ami-78a33c69.var
+    -rw-r--r--+ ami-debianXXX.var
+    -rw-r--r--+ base.json
+    -rw-r--r--+ base.json-bak
+    lrwxrwxrwx build.sh -> packer-wrapper.sh*
+    -rw-r--r--+ development.var
+    drwxr-xr-x+ files/
+    lrwxrwxrwx inspect.sh -> packer-wrapper.sh*
+    -rwxr-xr-x+ packer-wrapper.sh*
+    -rw-r--r--+ production.var
+    -rw-r--r--+ project.var
+    lrwxrwxrwx puppet -> ../puppet
+    -rw-r--r--+ qa.var
+    -rw-r--r--+ README
+    drwxr-xr-x+ scripts/
+    -rw-r--r--+ template.json
+    -rw-r--r--+ us-east-1.var
+    -rw-r--r--+ userdata.json
+    lrwxrwxrwx validate.sh -> packer-wrapper.sh*
+
+
+* project.var
+{
+    "project"   : "first-to-file",
+    "ami_region": "",
+    "puppet_version": "4.x"
+}
+
+
+* ami-xxx.var
+{
+    "source_ami"        : "ami-78a33c6f",
+    "ssh_username"      : "ec2-user",
+    "os_name"           : "Amazon",
+    "os_family"         : "RedHat",
+    "os_version"        : "4",
+    "epel_compat"       : "6",
+    "os_arch"           : "x86_64",
+    "package_cmd"       : "yum"
+}
+
+
+* production.var
+{
+    "proxy_url" : ""
+}
+
+
+* base.json
+{
+    "variables": {
+	"project"	: "",
+	"environment"	: "",
+	"region"	: "{{env `AWS_DEFAULT_REGION`}}",
+	"source_ami"	: "",
+	"ssh_username"	: "",
+	"instance"	: "t2.small",
+	"role"		: "ami/base",
+	"subnet_id"	: "",
+	"ami_region"	: "",
+	"home"		: "{{env `HOME`}}",
+	"build_number"	: "{{env `BUILD_NUMBER`}}",
+	"branch"	: "{{env `GIT_BRANCH`}}",
+	"commit"	: "{{env `GIT_COMMIT`}}",
+	"packages"	: "facter, puppet",
+	"repos"		: "XXX, YYY",
+	"puppet_repo"	: "http://yum.puppetlabs.com/puppetlabs-release-pc1-el-6.noarch.rpm",
+	"puppet_modules": "puppetlabs-{stdlib,firewall,concat}"
+    },
+    "builders": [
+	{
+	    "type"		: "amazon-ebs",
+	    "region"		: "{{user `region`}}",
+	    "source_ami"	: "{{user `source_ami`}}",
+	    "instance_type"	: "t2.small",
+	    "ssh_username"	: "{{user `ssh_username`}}",
+	    "subnet_id"		: "{{user `subnet_id`}}",            
+	    "ami_virtualization_type": "hvm",
+	    "security_group_ids": "{{user `security_group_ids`}}",
+	    "ami_name"		: "{{user `project`}} [{{user `role`}}] hvm [{{user `build_number`}}]",
+	    "ami_description"	: "Packer build - {{timestamp}}.",
+	    "tags"		: {
+		"role"		: "{{user `role`}}",
+		"project"	: "{{user `project`}}",
+		"environment"	: "{{user `environment`}}",
+		"commit"	: "{{user `commit`}}"
+	    },
+	    "run_tags" 		: {
+		"Name"		: "packer {{timestamp}}",
+		"role"		: "{{user `role`}}",
+		"project"	: "{{user `project`}}",
+		"environment"	: "{{user `environment`}}"
+	    },
+	    "user_data_file"	: "userdata.json"
+	}
+    ],
+    "provisioners": [
+	{
+	    "type"		: "shell",
+	    "inline"		: [ "alias sudo='\\sudo -E'",
+				    "sudo {{user `package_cmd`}} -y install {{user `$packages`}}",
+	    			    "sudo {{user `package_cmd`}} -y install {{user `puppet_repo`}}",
+				    "for p in {{user `puppet_modules`}}; do sudo puppet module install $p; done",
+	    			    "sudo {{user `package_cmd`}} install {{user `puppet_repo`}}"
+				  ],
+	    "environment_vars"	: [ "http_proxy={{user `proxy_url`}}" ],
+	    "pause_before"	: "30s"
+	},
+	{
+	    "type"		: "shell",
+	    "scripts"		: [ "scripts/bootstrap.sh" ],
+	    "environment_vars"	: [ "http_proxy={{user `proxy_url`}}" ],
+	    "pause_before"	: "30s"
+	},
+	{
+	    "type"		: "puppet-masterless",
+				# relative symlinks may not work
+	    "manifest_file"	: "puppet/manifests/site.pp",
+	    "module_paths"	: [ "puppet/modules" ],
+	    "facter"		: { 
+				    "key"  : "value",
+				    "key2" : "value2"
+				  }
+	}
+    ]
+}
+
+
+--- 
+interesting method but beware lack of arrays in uservars
+export AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-west-2}
+export AWS_REGION=$AWS_DEFAULT_REGION
+
+SIZE="m4.xlarge"
+VPC_NAME="MyVPC Name"
+SUBNET_NAME="MySubnet Name"
+SG_NAMES="'MyGroup <- WINRM','MyGroup <- RDP','MyGroup VPC','MyGroup -> NAT'"
+AMI=$(grep $AWS_DEFAULT_REGION ./amis.map | awk -F: '{print$2}')
+VPC=$(aws ec2 describe-vpcs --filter=Name=tag-value,Values="${VPC_NAME}" | jq '.Vpcs[0].VpcId'|tr -d '"')
+SUBNET=$(aws ec2 describe-subnets --filters=Name=vpc-id,Values=$VPC,Name=tag-value,Values="${SUBNET_NAME}" | jq '.Subnets[0].SubnetId' | tr -d '"')
+SGS=$(aws ec2 describe-security-groups --filter=Name=tag-value,Values="${SG_NAMES}" | jq '.SecurityGroups[].GroupId' | tr -d '"')
+SECURITY_GROUPS="\"$(join "\",\"" ${SGS[@]})\""
+
+echo "Using packer log level: ${PACKER_LOG}"
+echo "Using packer log: ${PACKER_LOG_PATH}"
+echo "Using region: ${AWS_REGION}"
+echo "Using VPC: '${VPC_NAME}': ${VPC}"
+echo "Using SUBNET: '${SUBNET_NAME}': ${SUBNET}"
+echo "Using AMI: ${AMI}"
+echo "Using Security Groups: ${SECURITY_GROUPS}"
+
+packer build --var region=$AWS_REGION --var vpc_id=$VPC --var subnet_id=$SUBNET --var base_ami=$AMI --var instance_type=$SIZE --var security_groups=$SECURITY_GROUPS amazon-sysprep.json

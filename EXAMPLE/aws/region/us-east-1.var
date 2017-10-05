@@ -1,0 +1,6 @@
+{
+    "region"	: "us-east-1",
+    "vpc_id"	: "vpc-d682ffb1",
+    "subnet_id"	: "subnet-a43affed",
+    "security_group_ids": "sg-8114c4fb,sg-22e75958,sg-48d15632,sg-bc33d2c0"
+}

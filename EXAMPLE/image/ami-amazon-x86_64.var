@@ -1,0 +1,19 @@
+{
+    "source_ami_filter"	: {
+	"filters" : {
+	    "virtualization-type" : "hvm",
+	    "name"	: "*amazon*??",
+	    "root-device-type" : "ebs"
+	},
+	"owners"	: ["amazonID", "secondID" ],
+	"most_recent"	: true
+    }
+    "ssh_username"	: "ec2-user",
+    "package_cmd"	: "yum"
+    "os_name"		: "Amazon",
+    "os_family"		: "RedHat",
+    "os_arch"		: "x86_64",
+#TODO figure out how to set version
+    "os_version"	: "4",
+    "epel_compat"	: "6",
+}

@@ -1,0 +1,11 @@
+{
+    "source_ami"	: "ami-78a33c6f",
+    "region"		: "us-east-1",
+    "ssh_username"	: "ec2-user",
+    "package_cmd"	: "yum",
+    "os_name"		: "Amazon",
+    "os_family"		: "RedHat",
+    "os_arch"		: "x86_64",
+    "os_version"	: "4",
+    "os_distro"		: "6"
+}

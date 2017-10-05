@@ -1,0 +1,5 @@
+{
+    "project"		: "first-to-file",
+    "ami_region"	: "",
+    "puppet_version"	: "4.x"
+}
