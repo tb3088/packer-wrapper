@@ -94,8 +94,7 @@ while getopts "$GETOPT" sw; do
 done
 shift $((OPTIND-1))
 
-
-[ ${#@} -eq 0 -a -z "$TEMPLATE" ] && { echo "ERROR: insufficient args"; usage; }
+[ -z "$TEMPLATE" -a ${#@} -eq 0 ] && { echo "ERROR: insufficient args"; usage; }
 
 
 # set some useful defaults
